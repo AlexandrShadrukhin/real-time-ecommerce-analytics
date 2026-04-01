@@ -1,0 +1,26 @@
+{
+  "model_version": "baseline-logreg-v1",
+  "model_features": [
+    "price",
+    "is_view",
+    "is_click",
+    "is_cart",
+    "hour_of_day"
+  ],
+  "prediction_request": {
+    "event_id": "string",
+    "user_id": "integer",
+    "timestamp": "ISO-8601 datetime",
+    "price": "float",
+    "is_view": "0|1",
+    "is_click": "0|1",
+    "is_cart": "0|1",
+    "hour_of_day": "0-23"
+  },
+  "prediction_response": {
+    "event_id": "string",
+    "user_id": "integer",
+    "purchase_probability": "float",
+    "model_version": "string"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "model_version": "baseline-logreg-v1",
+  "sample_count": 3000,
+  "train_rows": 2400,
+  "validation_rows": 600,
+  "training_metrics": {
+    "accuracy": 0.925,
+    "log_loss": 0.24806820286649484,
+    "average_score": 0.0966318177276502,
+    "positive_rate": 0.075
+  },
+  "validation_metrics": {
+    "accuracy": 0.9166666666666666,
+    "log_loss": 0.2664731483661333,
+    "average_score": 0.09657325084788411,
+    "positive_rate": 0.08333333333333333
+  }
+}
