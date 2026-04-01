@@ -10,10 +10,37 @@ MODEL_PATH = ARTIFACTS_DIR / "baseline_model.json"
 SCHEMA_PATH = ARTIFACTS_DIR / "feature_schema.json"
 METRICS_PATH = ARTIFACTS_DIR / "training_metrics.json"
 
-MODEL_VERSION = "baseline-logreg-v1"
-MODEL_FEATURES = ["price", "is_view", "is_click", "is_cart", "hour_of_day"]
+MODEL_VERSION = "baseline-logreg-v2"
+MODEL_FEATURES = [
+    "price",
+    "price_to_user_mean",
+    "hour_of_day",
+    "is_view",
+    "is_click",
+    "is_cart",
+    "session_event_index",
+    "session_click_count",
+    "session_cart_count",
+    "user_total_clicks",
+    "user_total_carts",
+    "user_total_purchases",
+]
 METADATA_FIELDS = ["event_id", "user_id", "timestamp"]
 REQUIRED_PREDICTION_FIELDS = METADATA_FIELDS + MODEL_FEATURES
+FEATURE_DESCRIPTIONS = {
+    "price": "Current event price.",
+    "price_to_user_mean": "Current price divided by the user's historical average price.",
+    "hour_of_day": "Hour extracted from event timestamp.",
+    "is_view": "Current event is a product view.",
+    "is_click": "Current event is a click.",
+    "is_cart": "Current event is an add-to-cart action.",
+    "session_event_index": "Position of the event within the current session.",
+    "session_click_count": "Clicks observed in the current session up to this event.",
+    "session_cart_count": "Cart additions observed in the current session up to this event.",
+    "user_total_clicks": "Historical clicks for the user before the current session.",
+    "user_total_carts": "Historical cart additions for the user before the current session.",
+    "user_total_purchases": "Historical completed purchases for the user.",
+}
 
 
 def parse_hour_of_day(timestamp: str) -> int:
@@ -31,10 +58,17 @@ def normalize_prediction_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
         "user_id": int(payload["user_id"]),
         "timestamp": str(payload["timestamp"]),
         "price": float(payload["price"]),
+        "price_to_user_mean": float(payload["price_to_user_mean"]),
+        "hour_of_day": int(payload["hour_of_day"]),
         "is_view": int(payload["is_view"]),
         "is_click": int(payload["is_click"]),
         "is_cart": int(payload["is_cart"]),
-        "hour_of_day": int(payload["hour_of_day"]),
+        "session_event_index": int(payload["session_event_index"]),
+        "session_click_count": int(payload["session_click_count"]),
+        "session_cart_count": int(payload["session_cart_count"]),
+        "user_total_clicks": int(payload["user_total_clicks"]),
+        "user_total_carts": int(payload["user_total_carts"]),
+        "user_total_purchases": int(payload["user_total_purchases"]),
     }
     return normalized
 
@@ -48,10 +82,17 @@ def build_schema_document() -> dict[str, Any]:
             "user_id": "integer",
             "timestamp": "ISO-8601 datetime",
             "price": "float",
+            "price_to_user_mean": "float",
+            "hour_of_day": "0-23",
             "is_view": "0|1",
             "is_click": "0|1",
             "is_cart": "0|1",
-            "hour_of_day": "0-23",
+            "session_event_index": "integer >= 1",
+            "session_click_count": "integer >= 0",
+            "session_cart_count": "integer >= 0",
+            "user_total_clicks": "integer >= 0",
+            "user_total_carts": "integer >= 0",
+            "user_total_purchases": "integer >= 0",
         },
         "prediction_response": {
             "event_id": "string",
@@ -59,4 +100,5 @@ def build_schema_document() -> dict[str, Any]:
             "purchase_probability": "float",
             "model_version": "string",
         },
+        "feature_descriptions": FEATURE_DESCRIPTIONS,
     }

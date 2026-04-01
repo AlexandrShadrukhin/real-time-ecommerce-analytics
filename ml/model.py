@@ -116,10 +116,50 @@ def evaluate_model(rows: Iterable[dict[str, Any]], artifact: dict[str, Any]) -> 
     predictions = [score_features(row, artifact) for row in scored_rows]
     labels = [int(row["label"]) for row in scored_rows]
 
-    accuracy = sum(
-        int((prediction >= 0.5) == bool(label))
-        for prediction, label in zip(predictions, labels)
-    ) / len(labels)
+    def classification_metrics(threshold: float) -> dict[str, float]:
+        binary_predictions = [int(prediction >= threshold) for prediction in predictions]
+        accuracy = sum(
+            int(prediction == label)
+            for prediction, label in zip(binary_predictions, labels)
+        ) / len(labels)
+        true_positive = sum(
+            1
+            for prediction, label in zip(binary_predictions, labels)
+            if prediction == 1 and label == 1
+        )
+        false_positive = sum(
+            1
+            for prediction, label in zip(binary_predictions, labels)
+            if prediction == 1 and label == 0
+        )
+        false_negative = sum(
+            1
+            for prediction, label in zip(binary_predictions, labels)
+            if prediction == 0 and label == 1
+        )
+        precision = true_positive / max(true_positive + false_positive, 1)
+        recall = true_positive / max(true_positive + false_negative, 1)
+        f1_score = (
+            2 * precision * recall / (precision + recall)
+            if (precision + recall) > 0
+            else 0.0
+        )
+        return {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1_score": f1_score,
+        }
+
+    default_metrics = classification_metrics(0.5)
+    threshold_grid = [round(value, 2) for value in [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]]
+    best_threshold = 0.5
+    best_threshold_metrics = default_metrics
+    for threshold in threshold_grid:
+        threshold_metrics = classification_metrics(threshold)
+        if threshold_metrics["f1_score"] > best_threshold_metrics["f1_score"]:
+            best_threshold = threshold
+            best_threshold_metrics = threshold_metrics
 
     log_loss = 0.0
     for prediction, label in zip(predictions, labels):
@@ -130,8 +170,16 @@ def evaluate_model(rows: Iterable[dict[str, Any]], artifact: dict[str, Any]) -> 
     positive_rate = sum(labels) / len(labels)
 
     return {
-        "accuracy": accuracy,
+        "accuracy": default_metrics["accuracy"],
         "log_loss": log_loss / len(labels),
+        "precision": default_metrics["precision"],
+        "recall": default_metrics["recall"],
+        "f1_score": default_metrics["f1_score"],
+        "best_threshold": best_threshold,
+        "best_accuracy": best_threshold_metrics["accuracy"],
+        "best_precision": best_threshold_metrics["precision"],
+        "best_recall": best_threshold_metrics["recall"],
+        "best_f1_score": best_threshold_metrics["f1_score"],
         "average_score": average_score,
         "positive_rate": positive_rate,
     }

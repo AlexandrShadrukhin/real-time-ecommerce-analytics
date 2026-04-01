@@ -22,4 +22,7 @@ class TrainModelTests(unittest.TestCase):
 
             metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
             self.assertGreater(metrics["validation_metrics"]["accuracy"], 0.7)
+            self.assertGreater(metrics["validation_metrics"]["best_f1_score"], 0.45)
             self.assertLess(metrics["validation_metrics"]["log_loss"], 0.7)
+            self.assertIn("dataset_summary", metrics)
+            self.assertTrue(metrics["feature_weights"])

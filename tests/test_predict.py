@@ -19,17 +19,24 @@ class PredictTests(unittest.TestCase):
                 "user_id": 10,
                 "timestamp": "2026-04-01T18:30:00",
                 "price": 1200.0,
+                "price_to_user_mean": 0.9,
+                "hour_of_day": 18,
                 "is_view": 0,
                 "is_click": 1,
                 "is_cart": 0,
-                "hour_of_day": 18,
+                "session_event_index": 3,
+                "session_click_count": 1,
+                "session_cart_count": 0,
+                "user_total_clicks": 8,
+                "user_total_carts": 1,
+                "user_total_purchases": 0,
             }
 
             prediction = predict(payload, model_path=model_path)
 
             self.assertEqual(prediction["event_id"], "evt-1")
             self.assertEqual(prediction["user_id"], 10)
-            self.assertEqual(prediction["model_version"], "baseline-logreg-v1")
+            self.assertEqual(prediction["model_version"], "baseline-logreg-v2")
             self.assertGreaterEqual(prediction["purchase_probability"], 0.0)
             self.assertLessEqual(prediction["purchase_probability"], 1.0)
 
@@ -43,7 +50,14 @@ class PredictTests(unittest.TestCase):
                 "user_id": 11,
                 "timestamp": "2026-04-01T19:00:00",
                 "price": 1400.0,
+                "price_to_user_mean": 0.95,
                 "hour_of_day": 19,
+                "session_event_index": 4,
+                "session_click_count": 2,
+                "session_cart_count": 0,
+                "user_total_clicks": 12,
+                "user_total_carts": 2,
+                "user_total_purchases": 1,
             }
 
             view_score = predict_proba(

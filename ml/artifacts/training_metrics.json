@@ -1,18 +1,110 @@
 {
-  "model_version": "baseline-logreg-v1",
-  "sample_count": 3000,
-  "train_rows": 2400,
-  "validation_rows": 600,
+  "model_version": "baseline-logreg-v2",
+  "sample_count": 4000,
+  "train_rows": 3200,
+  "validation_rows": 800,
+  "dataset_summary": {
+    "row_count": 4000,
+    "unique_users": 302,
+    "positive_rate": 0.3275,
+    "average_price": 2092.27,
+    "average_session_depth": 3.62,
+    "average_user_clicks": 2.29,
+    "average_user_carts": 1.66,
+    "event_mix": {
+      "add_to_cart": 0.286,
+      "click": 0.388,
+      "view": 0.326
+    }
+  },
+  "feature_weights": [
+    {
+      "feature": "session_cart_count",
+      "weight": 0.874751,
+      "abs_weight": 0.874751
+    },
+    {
+      "feature": "user_total_purchases",
+      "weight": 0.536849,
+      "abs_weight": 0.536849
+    },
+    {
+      "feature": "user_total_carts",
+      "weight": 0.494165,
+      "abs_weight": 0.494165
+    },
+    {
+      "feature": "session_event_index",
+      "weight": 0.42049,
+      "abs_weight": 0.42049
+    },
+    {
+      "feature": "session_click_count",
+      "weight": 0.411065,
+      "abs_weight": 0.411065
+    },
+    {
+      "feature": "user_total_clicks",
+      "weight": 0.310074,
+      "abs_weight": 0.310074
+    },
+    {
+      "feature": "price_to_user_mean",
+      "weight": -0.175421,
+      "abs_weight": 0.175421
+    },
+    {
+      "feature": "is_view",
+      "weight": -0.13235,
+      "abs_weight": 0.13235
+    },
+    {
+      "feature": "is_cart",
+      "weight": 0.083166,
+      "abs_weight": 0.083166
+    },
+    {
+      "feature": "is_click",
+      "weight": 0.051297,
+      "abs_weight": 0.051297
+    },
+    {
+      "feature": "price",
+      "weight": -0.034092,
+      "abs_weight": 0.034092
+    },
+    {
+      "feature": "hour_of_day",
+      "weight": -0.021216,
+      "abs_weight": 0.021216
+    }
+  ],
   "training_metrics": {
-    "accuracy": 0.925,
-    "log_loss": 0.24806820286649484,
-    "average_score": 0.0966318177276502,
-    "positive_rate": 0.075
+    "accuracy": 0.816875,
+    "log_loss": 0.40343998000011716,
+    "precision": 0.7598204264870931,
+    "recall": 0.6453765490943756,
+    "f1_score": 0.697938144329897,
+    "best_threshold": 0.35,
+    "best_accuracy": 0.80875,
+    "best_precision": 0.6810273405136703,
+    "best_recall": 0.7836034318398475,
+    "best_f1_score": 0.7287234042553193,
+    "average_score": 0.3324215228518673,
+    "positive_rate": 0.3278125
   },
   "validation_metrics": {
-    "accuracy": 0.9166666666666666,
-    "log_loss": 0.2664731483661333,
-    "average_score": 0.09657325084788411,
-    "positive_rate": 0.08333333333333333
+    "accuracy": 0.82625,
+    "log_loss": 0.4080138090858867,
+    "precision": 0.7699115044247787,
+    "recall": 0.6666666666666666,
+    "f1_score": 0.7145790554414784,
+    "best_threshold": 0.5,
+    "best_accuracy": 0.82625,
+    "best_precision": 0.7699115044247787,
+    "best_recall": 0.6666666666666666,
+    "best_f1_score": 0.7145790554414784,
+    "average_score": 0.3404908382295367,
+    "positive_rate": 0.32625
   }
 }
