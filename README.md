@@ -89,7 +89,7 @@ ML pipeline включает:
 
 ### Общие инструменты
 - Streamlit / Grafana  
-- Docker / Docker Compose  
+- Docker / docker-compose  
 
 ---
 
