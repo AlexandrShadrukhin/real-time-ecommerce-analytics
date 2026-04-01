@@ -14,6 +14,7 @@ env/
 
 # Local temp files
 tests/.tmp/
+.run/
 
 # IDE files
 .idea/

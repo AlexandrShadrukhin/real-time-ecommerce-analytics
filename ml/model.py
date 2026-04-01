@@ -94,18 +94,40 @@ def train_logistic_regression(
 
 
 def score_features(features: dict[str, float], artifact: dict[str, Any]) -> float:
-    normalized_row = []
+    explanation = explain_feature_contributions(features, artifact)
+    return explanation["probability"]
+
+
+def explain_feature_contributions(
+    features: dict[str, float],
+    artifact: dict[str, Any],
+) -> dict[str, Any]:
+    contributions = []
+    linear_score = artifact["bias"]
+
     for index, feature_name in enumerate(artifact["feature_names"]):
-        value = float(features[feature_name])
+        raw_value = float(features[feature_name])
         mean_value = artifact["scaler"]["means"][index]
         scale_value = artifact["scaler"]["scales"][index]
-        normalized_row.append((value - mean_value) / scale_value)
+        normalized_value = (raw_value - mean_value) / scale_value
+        contribution = artifact["weights"][index] * normalized_value
+        linear_score += contribution
+        contributions.append(
+            {
+                "feature": feature_name,
+                "raw_value": raw_value,
+                "normalized_value": normalized_value,
+                "weight": artifact["weights"][index],
+                "contribution": contribution,
+            }
+        )
 
-    linear_score = artifact["bias"]
-    linear_score += sum(
-        weight * value for weight, value in zip(artifact["weights"], normalized_row)
-    )
-    return sigmoid(linear_score)
+    return {
+        "bias": artifact["bias"],
+        "linear_score": linear_score,
+        "probability": sigmoid(linear_score),
+        "contributions": contributions,
+    }
 
 
 def evaluate_model(rows: Iterable[dict[str, Any]], artifact: dict[str, Any]) -> dict[str, float]:
