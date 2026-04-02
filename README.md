@@ -132,17 +132,17 @@ ML pipeline включает:
 
 ```
 real-time-ecommerce-analytics/
-├── producer/
-├── processor/
-├── ml/
-├── storage/
-├── api/
-├── dashboard/
-├── docs/
-├── config/
-├── artifacts/
-├── scripts/
-├── tests/
+├── producer/     # генерация событий и Kafka producer
+├── processor/    # Kafka consumer и обработка потока
+├── ml/           # модель, обучение и инференс
+├── storage/      # ClickHouse клиент и схемы
+├── api/          # backend/API (в разработке)
+├── dashboard/    # Streamlit dashboard
+├── docs/         # архитектурные схемы
+├── config/       # конфигурация проекта
+├── artifacts/    # результаты работы (jsonl, модели)
+├── scripts/      # вспомогательные скрипты
+├── tests/        # тесты
 ├── README.md
 ├── requirements.txt
 └── docker-compose.yml
@@ -152,8 +152,8 @@ real-time-ecommerce-analytics/
 
 ## Участники проекта
 
-- AlexandrShadrukhin — Data Pipeline  
-- PKS339057 — ML Pipeline  
+- **[AlexandrShadrukhin](https://github.com/AlexandrShadrukhin)** (Шадрухин Александр) — Data Pipeline / Data Engineering  
+- **[PKS339057](https://github.com/PKS339057)** (Пряничников Кирилл) — ML Pipeline / Machine Learning  
 
 ---
 
