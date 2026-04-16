@@ -5,8 +5,10 @@
 
 Система обрабатывает поток пользовательских событий (просмотры, клики, добавления в корзину) и формирует поведенческие признаки, которые используются для аналитики и ML-прогнозирования вероятности покупки.
 
+Система поддерживает онлайн-инференс ML-модели в реальном времени.
+
 Реализован полный pipeline обработки данных:
-генерация событий → Kafka → потоковая обработка → feature engineering → ML → ClickHouse → аналитика.
+генерация событий → Kafka → stream processing → feature engineering → ML (CatBoost) → ClickHouse → Grafana dashboard
 
 ---
 
@@ -44,7 +46,7 @@ Pipeline включает:
 
 ML pipeline включает:
 - генерацию синтетического датасета;
-- обучение baseline-модели (логистическая регрессия);
+- ML-модель (CatBoost) для онлайн-прогнозирования вероятности покупки;
 - нормализацию и масштабирование признаков;
 - сохранение артефактов модели (weights, scaler, schema);
 - онлайн-инференс (predict module);
@@ -67,12 +69,13 @@ ML pipeline включает:
 - запись в ClickHouse  
 
 ### ML Pipeline (Machine Learning)
-- генерация датасета  
-- обучение baseline-модели  
-- feature contract  
-- онлайн-инференс  
-- объяснение предсказаний  
-- визуализация (Streamlit)  
+- использование обученной модели CatBoost (model.cbm);
+- загрузку feature schema (feature_schema.json);
+- формирование признаков из потокового конвейера;
+- онлайн-инференс (predict module);
+- расчёт вероятности покупки;
+- передачу результатов в ClickHouse;
+- визуализацию через Grafana dashboard.
 
 ---
 
@@ -87,11 +90,11 @@ ML pipeline включает:
 
 ### ML Pipeline
 - Python  
-- scikit-learn (baseline логистическая регрессия)  
+- CatBoost (предобученная модель)
 - pandas / numpy  
 
 ### Общие инструменты
-- Streamlit  
+- Grafana
 - Docker / Docker Compose  
 
 ---
@@ -113,18 +116,31 @@ ML pipeline включает:
   - feature_payloads
   - predictions
 - сохранение данных в jsonl-файлы;
-- baseline ML-модель:
-  - обучение
-  - сохранение артефактов
-  - предсказание вероятности покупки;
-- Streamlit dashboard.
+- интеграция ML-модели CatBoost;
+- онлайн-инференс вероятности покупки;
+- запись результатов в ClickHouse;
+- визуализация данных в Grafana:
+  - метрики в реальном времени
+  - динамика событий
+  - распределение поведения пользователей
 
 ### Планируется:
 - оконные агрегации (5 / 15 / 60 минут);
-- интеграция ML в поток (inline scoring);
 - API слой (FastAPI);
-- подключение Grafana;
 - масштабирование Kafka (consumer groups, partitions).
+
+### Визуализация данных
+
+Для анализа результатов используется Grafana dashboard, включающий:
+
+- общее число предсказаний;
+- среднюю вероятность покупки;
+- динамику событий в реальном времени;
+- распределение типов событий;
+- топ пользовательских сессий по вероятности покупки;
+- таблицу последних предсказаний.
+
+Dashboard обновляется в реальном времени.
 
 ---
 
@@ -132,17 +148,17 @@ ML pipeline включает:
 
 ```
 real-time-ecommerce-analytics/
-├── producer/
-├── processor/
-├── ml/
-├── storage/
-├── api/
-├── dashboard/
-├── docs/
-├── config/
-├── artifacts/
-├── scripts/
-├── tests/
+├── producer/     # генерация событий и Kafka producer
+├── processor/    # Kafka consumer и обработка потока
+├── ml/           # модель, обучение и инференс
+├── storage/      # ClickHouse клиент и схемы
+├── api/          # backend/API (в разработке)
+├── dashboard/    # Streamlit dashboard
+├── docs/         # архитектурные схемы
+├── config/       # конфигурация проекта
+├── artifacts/    # результаты работы (jsonl, модели)
+├── scripts/      # вспомогательные скрипты
+├── tests/        # тесты
 ├── README.md
 ├── requirements.txt
 └── docker-compose.yml
@@ -152,8 +168,8 @@ real-time-ecommerce-analytics/
 
 ## Участники проекта
 
-- AlexandrShadrukhin — Data Pipeline  
-- PKS339057 — ML Pipeline  
+- [AlexandrShadrukhin](https://github.com/AlexandrShadrukhin) (Шадрухин Александр) — Data Pipeline / Data Engineering  
+- [PKS339057](https://github.com/PKS339057) (Пряничников Кирилл) — ML Pipeline / Machine Learning
 
 ---
 
@@ -178,4 +194,4 @@ docker exec -it rtea-clickhouse clickhouse-client --user app --password app_pass
 
 ## Репозиторий
 
-Проект находится в стадии активной разработки MVP.
+Проект реализован как рабочий MVP системы потоковой аналитики с поддержкой онлайн-инференса ML-модели и визуализацией в реальном времени.
