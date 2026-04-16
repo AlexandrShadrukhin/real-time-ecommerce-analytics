@@ -134,6 +134,9 @@ ML pipeline включает:
 <p align="center">
   <img src="docs/grafana_dashboard.png" alt="Grafana Dashboard" width="800"/>
 </p>
+<p align="center">
+  <img src="docs/grafana_dashboard_2.png" alt="Grafana Dashboard" width="800"/>
+</p>
 
 Дашборд отображает ключевые метрики системы в реальном времени:
 
