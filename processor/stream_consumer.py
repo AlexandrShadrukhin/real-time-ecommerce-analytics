@@ -69,9 +69,7 @@ def consume_stream() -> None:
             save_prediction(result["prediction"], event_timestamp=result["event"]["timestamp"])
 
             print(f"===== Kafka Message #{index} =====")
-            print(
-                f"topic={message.topic} partition={message.partition} offset={message.offset}"
-            )
+            print(f"topic={message.topic} partition={message.partition} offset={message.offset}")
 
             print("Raw event:")
             print(json.dumps(result["event"], indent=2, ensure_ascii=False))

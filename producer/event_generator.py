@@ -5,10 +5,31 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
-EVENT_TYPES = ["view", "click", "add_to_cart", "purchase"]
-PRODUCT_CATEGORIES = ["electronics", "books", "fashion", "home"]
+EVENT_TYPES = ["view", "view", "view", "add_to_cart", "click"]
+CATEGORY_CODES = [
+    "electronics.smartphones",
+    "electronics.laptops",
+    "home.kitchen",
+    "fashion.shoes",
+    "fashion.tshirts",
+    "books.fiction",
+]
+BRANDS = ["apple", "samsung", "nike", "adidas", "xiaomi", "lenovo", None]
 DEVICE_TYPES = ["mobile", "desktop", "tablet"]
 SOURCES = ["search", "catalog", "recommendation", "ads"]
+
+
+def _sample_price(category_code: str | None) -> float:
+    if not category_code:
+        return round(random.uniform(100, 3000), 2)
+
+    if category_code.startswith("electronics"):
+        return round(random.uniform(1000, 6000), 2)
+    if category_code.startswith("fashion"):
+        return round(random.uniform(300, 2500), 2)
+    if category_code.startswith("books"):
+        return round(random.uniform(100, 1500), 2)
+    return round(random.uniform(200, 4000), 2)
 
 
 def generate_event(
@@ -16,21 +37,20 @@ def generate_event(
     session_id: str | None = None,
     timestamp: datetime | None = None,
 ) -> dict[str, Any]:
-    """
-    Сгенерировать одно пользовательское событие, пригодное для построения
-    признаков под ML-контракт.
-    """
     event_timestamp = timestamp or datetime.utcnow()
+    category_code = random.choice(CATEGORY_CODES + [None] * 1)
+    brand = random.choice(BRANDS)
 
     return {
         "event_id": str(uuid.uuid4()),
         "user_id": user_id if user_id is not None else random.randint(1, 20),
         "session_id": session_id or f"session_{uuid.uuid4().hex[:8]}",
-        "product_id": random.randint(1, 500),
+        "product_id": random.randint(1, 200),
         "event_type": random.choice(EVENT_TYPES),
         "timestamp": event_timestamp.isoformat(),
-        "price": round(random.uniform(100, 5000), 2),
-        "category": random.choice(PRODUCT_CATEGORIES),
+        "price": _sample_price(category_code),
+        "category_code": category_code,
+        "brand": brand,
         "device_type": random.choice(DEVICE_TYPES),
         "source": random.choice(SOURCES),
     }
@@ -41,9 +61,6 @@ def generate_session_events(
     session_length: int = 5,
     start_time: datetime | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Сгенерировать последовательность событий в рамках одной сессии.
-    """
     session_id = f"session_{uuid.uuid4().hex[:8]}"
     base_time = start_time or datetime.utcnow()
     resolved_user_id = user_id if user_id is not None else random.randint(1, 20)
@@ -51,18 +68,20 @@ def generate_session_events(
     events: list[dict[str, Any]] = []
     current_time = base_time
 
-    weighted_event_types = ["view", "view", "click", "click", "add_to_cart", "purchase"]
-
-    for _ in range(session_length):
+    for step in range(session_length):
         event = generate_event(
             user_id=resolved_user_id,
             session_id=session_id,
             timestamp=current_time,
         )
-        event["event_type"] = random.choice(weighted_event_types)
-        events.append(event)
 
-        current_time += timedelta(seconds=random.randint(5, 45))
+        if step == 0:
+            event["event_type"] = "view"
+        elif step == 1 and random.random() < 0.25:
+            event["event_type"] = "add_to_cart"
+
+        events.append(event)
+        current_time += timedelta(seconds=random.randint(5, 60))
 
     return events
 
@@ -72,9 +91,6 @@ def generate_event_stream(
     min_session_length: int = 3,
     max_session_length: int = 7,
 ) -> list[dict[str, Any]]:
-    """
-    Сгенерировать поток событий из нескольких пользовательских сессий.
-    """
     all_events: list[dict[str, Any]] = []
     current_time = datetime.utcnow()
 

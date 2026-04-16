@@ -1,51 +1,62 @@
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ARTIFACTS_DIR = PROJECT_ROOT / "ml" / "artifacts"
-MODEL_PATH = ARTIFACTS_DIR / "baseline_model.json"
+MODEL_PATH = PROJECT_ROOT / "ml" / "model" / "model.cbm"
 SCHEMA_PATH = ARTIFACTS_DIR / "feature_schema.json"
-METRICS_PATH = ARTIFACTS_DIR / "training_metrics.json"
 
-MODEL_VERSION = "baseline-logreg-v2"
+MODEL_VERSION = "catboost-v1"
 MODEL_FEATURES = [
-    "price",
-    "price_to_user_mean",
-    "hour_of_day",
-    "is_view",
-    "is_click",
-    "is_cart",
-    "session_event_index",
-    "session_click_count",
-    "session_cart_count",
-    "user_total_clicks",
-    "user_total_carts",
-    "user_total_purchases",
+    "n_views",
+    "n_carts",
+    "uniq_products",
+    "uniq_categories",
+    "mean_price",
+    "max_price",
+    "price_std",
+    "uniq_brands",
+    "missing_brand",
+    "missing_category_code",
+    "prefix_duration_sec",
+    "has_cart_in_prefix",
+    "cart_view_ratio",
+    "same_product_repeat_count",
+    "same_category_repeat_count",
+    "event_1_is_cart",
+    "event_2_is_cart",
+    "event_3_is_cart",
+    "time_1_to_2_sec",
+    "time_2_to_3_sec",
 ]
-METADATA_FIELDS = ["event_id", "user_id", "timestamp"]
+
+METADATA_FIELDS = ["event_id", "user_id", "session_id", "timestamp"]
 REQUIRED_PREDICTION_FIELDS = METADATA_FIELDS + MODEL_FEATURES
+
 FEATURE_DESCRIPTIONS = {
-    "price": "Current event price.",
-    "price_to_user_mean": "Current price divided by the user's historical average price.",
-    "hour_of_day": "Hour extracted from event timestamp.",
-    "is_view": "Current event is a product view.",
-    "is_click": "Current event is a click.",
-    "is_cart": "Current event is an add-to-cart action.",
-    "session_event_index": "Position of the event within the current session.",
-    "session_click_count": "Clicks observed in the current session up to this event.",
-    "session_cart_count": "Cart additions observed in the current session up to this event.",
-    "user_total_clicks": "Historical clicks for the user before the current session.",
-    "user_total_carts": "Historical cart additions for the user before the current session.",
-    "user_total_purchases": "Historical completed purchases for the user.",
+    "n_views": "Number of product views in the current session prefix.",
+    "n_carts": "Number of add-to-cart events in the current session prefix.",
+    "uniq_products": "Count of unique products in the current session prefix.",
+    "uniq_categories": "Count of unique category codes in the current session prefix.",
+    "mean_price": "Average product price in the current session prefix.",
+    "max_price": "Maximum product price in the current session prefix.",
+    "price_std": "Standard deviation of product prices in the current session prefix.",
+    "uniq_brands": "Count of unique brands in the current session prefix.",
+    "missing_brand": "Number of events with missing brand in the current session prefix.",
+    "missing_category_code": "Number of events with missing category code in the current session prefix.",
+    "prefix_duration_sec": "Duration of the current session prefix in seconds.",
+    "has_cart_in_prefix": "Whether there is at least one cart event in the current session prefix.",
+    "cart_view_ratio": "Ratio of cart events to view events in the current session prefix.",
+    "same_product_repeat_count": "How many repeated product visits happened in the current session prefix.",
+    "same_category_repeat_count": "How many repeated category visits happened in the current session prefix.",
+    "event_1_is_cart": "Whether the first event in the session is add-to-cart.",
+    "event_2_is_cart": "Whether the second event in the session is add-to-cart.",
+    "event_3_is_cart": "Whether the third event in the session is add-to-cart.",
+    "time_1_to_2_sec": "Time between the first and second events in seconds.",
+    "time_2_to_3_sec": "Time between the second and third events in seconds.",
 }
-
-
-def parse_hour_of_day(timestamp: str) -> int:
-    normalized = timestamp.replace("Z", "+00:00")
-    return datetime.fromisoformat(normalized).hour
 
 
 def normalize_prediction_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -56,20 +67,13 @@ def normalize_prediction_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
     normalized = {
         "event_id": str(payload["event_id"]),
         "user_id": int(payload["user_id"]),
+        "session_id": str(payload["session_id"]),
         "timestamp": str(payload["timestamp"]),
-        "price": float(payload["price"]),
-        "price_to_user_mean": float(payload["price_to_user_mean"]),
-        "hour_of_day": int(payload["hour_of_day"]),
-        "is_view": int(payload["is_view"]),
-        "is_click": int(payload["is_click"]),
-        "is_cart": int(payload["is_cart"]),
-        "session_event_index": int(payload["session_event_index"]),
-        "session_click_count": int(payload["session_click_count"]),
-        "session_cart_count": int(payload["session_cart_count"]),
-        "user_total_clicks": int(payload["user_total_clicks"]),
-        "user_total_carts": int(payload["user_total_carts"]),
-        "user_total_purchases": int(payload["user_total_purchases"]),
     }
+
+    for feature_name in MODEL_FEATURES:
+        normalized[feature_name] = float(payload[feature_name])
+
     return normalized
 
 
@@ -80,23 +84,14 @@ def build_schema_document() -> dict[str, Any]:
         "prediction_request": {
             "event_id": "string",
             "user_id": "integer",
+            "session_id": "string",
             "timestamp": "ISO-8601 datetime",
-            "price": "float",
-            "price_to_user_mean": "float",
-            "hour_of_day": "0-23",
-            "is_view": "0|1",
-            "is_click": "0|1",
-            "is_cart": "0|1",
-            "session_event_index": "integer >= 1",
-            "session_click_count": "integer >= 0",
-            "session_cart_count": "integer >= 0",
-            "user_total_clicks": "integer >= 0",
-            "user_total_carts": "integer >= 0",
-            "user_total_purchases": "integer >= 0",
+            **{feature_name: "float" for feature_name in MODEL_FEATURES},
         },
         "prediction_response": {
             "event_id": "string",
             "user_id": "integer",
+            "session_id": "string",
             "purchase_probability": "float",
             "model_version": "string",
         },
